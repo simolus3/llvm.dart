@@ -1,0 +1,108 @@
+type LLVMBool = int;
+# Generate an empty struct for chars so that we can define string-reading extensions on Pointer<char>
+type char = opaque struct;
+
+type LLVMValue = opaque struct;
+type LLVMValueRef = LLVMValue*;
+
+type LLVMType = opaque struct;
+type LLVMTypeRef = LLVMType*;
+
+void LLVMDisposeMessage(char *Message);
+
+# Contexts: https://llvm.org/doxygen/group__LLVMCCoreContext.html
+type LLVMContext = opaque struct;
+type LLVMContextRef = LLVMContext*;
+
+LLVMContextRef LLVMContextCreate();
+LLVMContextRef LLVMGetGlobalContext();
+void LLVMContextDispose(LLVMContextRef C);
+
+# Memory buffers: https://llvm.org/doxygen/group__LLVMCCoreMemoryBuffers.html
+type LLVMMemoryBuffer = opaque struct;
+type LLVMMemoryBufferRef = LLVMMemoryBuffer*;
+
+LLVMMemoryBufferRef LLVMCreateMemoryBufferWithMemoryRange (char *InputData, size_t InputDataLength, char *BufferName, LLVMBool RequiresNullTerminator);
+LLVMMemoryBufferRef LLVMCreateMemoryBufferWithMemoryRangeCopy (char *InputData, size_t InputDataLength, char *BufferName);
+void* LLVMGetBufferStart (LLVMMemoryBufferRef MemBuf);
+size_t LLVMGetBufferSize (LLVMMemoryBufferRef MemBuf);
+void LLVMDisposeMemoryBuffer (LLVMMemoryBufferRef MemBuf);
+
+# Modules: https://llvm.org/doxygen/group__LLVMCCoreModule.html
+type LLVMModule = opaque struct;
+type LLVMModuleRef = LLVMModule*;
+
+LLVMModuleRef LLVMModuleCreateWithName(char *ModuleID);
+LLVMModuleRef LLVMModuleCreateWithNameInContext(char *ModuleID, LLVMContextRef C);
+LLVMModuleRef LLVMCloneModule (LLVMModuleRef M);
+void LLVMDisposeModule (LLVMModuleRef M);
+char* LLVMGetModuleIdentifier (LLVMModuleRef M, size_t *Len);
+void LLVMSetModuleIdentifier (LLVMModuleRef M, char *Ident, size_t Len);
+char* LLVMPrintModuleToString(LLVMModuleRef M);
+LLVMValueRef LLVMAddFunction(LLVMModuleRef M, char* Name, LLVMTypeRef FunctionTy);
+
+# Analysis: https://llvm.org/doxygen/group__LLVMCAnalysis.html
+
+LLVMBool LLVMVerifyModule(LLVMModuleRef M, int Action, char** OutMessage);
+
+# Types: https://llvm.org/doxygen/group__LLVMCCoreType.html
+
+char* LLVMPrintTypeToString (LLVMTypeRef Val);
+LLVMBool LLVMTypeIsSized(LLVMTypeRef Ty);
+
+LLVMTypeRef LLVMIntTypeInContext(LLVMContextRef C, int NumBits);
+int LLVMGetIntTypeWidth(LLVMTypeRef IntegerTy);
+
+LLVMTypeRef LLVMFunctionType(LLVMTypeRef ReturnType, LLVMTypeRef* ParamTypes, int ParamCount, LLVMBool IsVarArg);
+LLVMBool LLVMIsFunctionVarArg(LLVMTypeRef FunctionTy);
+LLVMTypeRef LLVMGetReturnType(LLVMTypeRef FunctionTy);
+int LLVMCountParamTypes(LLVMTypeRef FunctionTy);
+void LLVMGetParamTypes(LLVMTypeRef FunctionTy, LLVMTypeRef *Dest);
+
+# Bit Writer: https://llvm.org/doxygen/group__LLVMCBitWriter.html
+
+LLVMMemoryBufferRef LLVMWriteBitcodeToMemoryBuffer(LLVMModuleRef M);
+
+# Basic Blocks https://llvm.org/doxygen/group__LLVMCCoreValueBasicBlock.html
+
+type LLVMBasicBlock = opaque struct;
+type LLVMBasicBlockRef = LLVMBasicBlock*;
+
+LLVMBasicBlockRef LLVMAppendBasicBlockInContext(LLVMContextRef C, LLVMValueRef Fn, char* Name);
+void LLVMDeleteBasicBlock(LLVMBasicBlockRef BB);
+
+# Instruction builder: https://llvm.org/doxygen/group__LLVMCCoreInstructionBuilder.html
+
+type LLVMBuilder = opaque struct;
+type LLVMBuilderRef = LLVMBuilder*;
+
+LLVMBuilderRef LLVMCreateBuilderInContext(LLVMContextRef C);
+void LLVMPositionBuilder(LLVMBuilderRef Builder, LLVMBasicBlockRef Block, LLVMValueRef Instr);
+void LLVMPositionBuilderBefore(LLVMBuilderRef Builder, LLVMValueRef instr);
+void LLVMPositionBuilderAtEnd(LLVMBuilderRef Builder, LLVMBasicBlockRef Block);
+void LLVMClearInsertionPosition(LLVMBuilderRef Builder);
+void LLVMDisposeBuilder(LLVMBuilderRef Builder);
+
+LLVMValueRef LLVMBuildRetVoid(LLVMBuilderRef Builder);
+LLVMValueRef LLVMBuildRet(LLVMBuilderRef Builder, LLVMValueRef V);
+LLVMValueRef LLVMBuildAdd(LLVMBuilderRef Builder, LLVMValueRef LHS, LLVMValueRef RHS, char* Name);
+LLVMValueRef LLVMBuildSub(LLVMBuilderRef Builder, LLVMValueRef LHS, LLVMValueRef RHS, char* Name);
+
+# Values: https://llvm.org/doxygen/group__LLVMCCoreValues.html
+
+LLVMValueRef LLVMGetParam(LLVMValueRef Fn, int index);
+
+# Execution engine: https://llvm.org/doxygen/group__LLVMCExecutionEngine.html
+
+type LLVMGenericValue = opaque struct;
+type LLVMGenericValueRef = LLVMGenericValue*;
+type LLVMExecutionEngine = opaque struct;
+type LLVMExecutionEngineRef = LLVMExecutionEngine*;
+
+LLVMGenericValueRef LLVMCreateGenericValueOfInt(LLVMTypeRef Ty, uint64 N, int IsSigned);
+uint64 LLVMGenericValueToInt(LLVMGenericValueRef GenVal, int IsSigned);
+
+void LLVMLinkInMCJIT();
+LLVMBool LLVMCreateExecutionEngineForModule(LLVMExecutionEngineRef *OutEE, LLVMModuleRef M, char **OutError);
+void LLVMDisposeExecutionEngine(LLVMExecutionEngineRef EE);
+LLVMGenericValueRef LLVMRunFunction(LLVMExecutionEngineRef EE, LLVMValueRef F, int NumArgs, LLVMGenericValueRef *Args);
